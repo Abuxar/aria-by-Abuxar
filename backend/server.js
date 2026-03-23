@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import authRoutes from './routes/authRoutes.js';
 
 dotenv.config();
 
@@ -25,6 +26,9 @@ app.use(limiter);
 
 // Body Parser
 app.use(express.json());
+
+// Routes
+app.use('/api/auth', authRoutes);
 
 // Main Health Ping Endpoint (for UptimeRobot)
 app.get('/health', (req, res) => {
