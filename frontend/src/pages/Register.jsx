@@ -12,8 +12,8 @@ export default function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     await register(formData.name, formData.email, formData.password, formData.phone);
-    if (!useAuthStore.getState().error && useAuthStore.getState().user) {
-      navigate('/');
+    if (!useAuthStore.getState().error) {
+      navigate('/login');
     }
   };
 

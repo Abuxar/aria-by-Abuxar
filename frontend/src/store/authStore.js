@@ -25,9 +25,9 @@ export const useAuthStore = create((set) => ({
   register: async (name, email, password, phone) => {
     set({ isLoading: true, error: null });
     try {
-      const { data } = await axios.post(`${API_URL}/auth/register`, { name, email, password, phone });
-      localStorage.setItem('userInfo', JSON.stringify(data));
-      set({ user: data, isLoading: false });
+      await axios.post(`${API_URL}/auth/register`, { name, email, password, phone });
+      // User must log in manually after registration
+      set({ isLoading: false });
     } catch (error) {
       set({ 
         error: error.response && error.response.data.message ? error.response.data.message : error.message,
