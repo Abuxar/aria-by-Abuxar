@@ -37,17 +37,18 @@ app.get('/', (req, res) => {
 });
 
 // --- MongoDB Connection & Server Start --- //
-if (process.env.NODE_ENV !== 'test') {
-  mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/aria')
-    .then(() => {
-      console.log('Connected to MongoDB');
-      app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  
+  if (process.env.NODE_ENV !== 'test') {
+    mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/aria')
+      .then(() => {
+        console.log('Connected to MongoDB');
+      })
+      .catch((error) => {
+        console.error('Error connecting to MongoDB. The server is still running for /health endpoint. Error:', error.message);
       });
-    })
-    .catch((error) => {
-      console.error('Error connecting to MongoDB:', error.message);
-    });
-}
+  }
+});
 
 export default app;
