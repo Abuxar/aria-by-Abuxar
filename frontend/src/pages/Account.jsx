@@ -15,7 +15,7 @@ export default function Account() {
     } else {
       const fetchOrders = async () => {
         try {
-          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+          const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://aria-backend-7040.onrender.com/api' : 'http://localhost:5000/api');
           const { data } = await axios.get(`${API_URL}/orders/myorders`, {
             headers: { Authorization: `Bearer ${user.token}` }
           });

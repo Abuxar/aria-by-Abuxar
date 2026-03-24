@@ -17,7 +17,7 @@ export default function AdminCategoryManager() {
   const [bulkTagSlug, setBulkTagSlug] = useState('');
 
   const { user } = useAuthStore();
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://aria-backend-7040.onrender.com/api' : 'http://localhost:5000/api');
 
   const fetchData = useCallback(async () => {
     try {

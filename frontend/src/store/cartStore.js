@@ -65,7 +65,7 @@ export const useCartStore = create(
 
         try {
           // Sync against core MongoDB payloads natively ignoring local staleness
-          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+          const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://aria-backend-7040.onrender.com/api' : 'http://localhost:5000/api');
           const { data: allProducts } = await axios.get(`${API_URL}/products`);
           
           const validItems = items.reduce((acc, item) => {
