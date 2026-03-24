@@ -11,9 +11,9 @@ export default function AdminLayout({ children }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-black">
+    <div className="flex h-screen overflow-hidden bg-black pt-24 box-border">
       {/* Sidebar */}
-      <aside className="w-64 bg-gray-900 border-r border-gray-800 hidden md:flex flex-col shadow-2xl z-10">
+      <aside className="w-64 bg-gray-900 border-r border-gray-800 hidden md:flex flex-col shadow-2xl z-10 h-full relative">
         <div className="p-6 border-b border-gray-800">
           <h2 className="text-white font-bold tracking-widest text-sm uppercase">ADMIN PANEL</h2>
         </div>
@@ -24,6 +24,12 @@ export default function AdminLayout({ children }) {
           <Link to="/admin/products" className={`flex items-center gap-3 px-4 py-3 rounded transition-colors mb-2 ${location.pathname.includes('/admin/products') ? 'text-white bg-gray-800 border-l-2 border-white' : 'text-gray-400 hover:text-white hover:bg-gray-800 border-l-2 border-transparent hover:border-gray-500'}`}>
             <span className="font-mono text-xs tracking-widest uppercase">Products</span>
           </Link>
+          <Link to="/admin/categories" className={`flex items-center gap-3 px-4 py-3 rounded transition-colors mb-2 ${location.pathname.includes('/admin/categories') ? 'text-white bg-gray-800 border-l-2 border-white' : 'text-gray-400 hover:text-white hover:bg-gray-800 border-l-2 border-transparent hover:border-gray-500'}`}>
+            <span className="font-mono text-xs tracking-widest uppercase">Categories</span>
+          </Link>
+          <Link to="/admin/orders" className={`flex items-center gap-3 px-4 py-3 rounded transition-colors mb-2 ${location.pathname.includes('/admin/orders') ? 'text-white bg-gray-800 border-l-2 border-white' : 'text-gray-400 hover:text-white hover:bg-gray-800 border-l-2 border-transparent hover:border-gray-500'}`}>
+            <span className="font-mono text-xs tracking-widest uppercase">Orders Matrix</span>
+          </Link>
           <Link to="/admin/carousels" className={`flex items-center gap-3 px-4 py-3 rounded transition-colors mb-2 ${location.pathname.includes('/admin/carousels') ? 'text-white bg-gray-800 border-l-2 border-white' : 'text-gray-400 hover:text-white hover:bg-gray-800 border-l-2 border-transparent hover:border-gray-500'}`}>
             <span className="font-mono text-xs tracking-widest uppercase">Carousels</span>
           </Link>
@@ -31,7 +37,7 @@ export default function AdminLayout({ children }) {
       </aside>
       
       {/* Main Content */}
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-8 overflow-y-auto h-full relative">
         {children || <Outlet />}
       </main>
     </div>

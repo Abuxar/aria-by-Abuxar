@@ -10,17 +10,20 @@ import 'swiper/css/pagination';
 export default function Home() {
   const [products, setProducts] = useState([]);
   const [carousels, setCarousels] = useState([]);
+  const [taxonomy, setTaxonomy] = useState([]);
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [prodRes, carRes] = await Promise.all([
+        const [prodRes, carRes, taxRes] = await Promise.all([
            axios.get(`${API_URL}/products`),
-           axios.get(`${API_URL}/carousels`)
+           axios.get(`${API_URL}/carousels`),
+           axios.get(`${API_URL}/categories`)
         ]);
         setProducts(prodRes.data.slice(0, 4));
         setCarousels(carRes.data);
+        setTaxonomy(taxRes.data);
       } catch (error) {
         console.error('Failed to load home data', error);
       }
@@ -80,44 +83,72 @@ export default function Home() {
 
       {/* Highlights Section */}
       <section className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-end mb-12 border-b border-gray-900 pb-4">
-          <h2 className="text-2xl font-sans font-bold tracking-widest uppercase text-white shadow-sm">Collection Highlights</h2>
-          <Link to="/shop" className="text-xs font-mono text-gray-400 hover:text-white uppercase tracking-widest transition-colors mb-1 group flex items-center gap-2">
-            View Shop <span className="group-hover:translate-x-1 outline-none transition-transform">&rarr;</span>
-          </Link>
-        </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {products.length === 0 ? (
-            <div className="col-span-4 flex flex-col items-center justify-center py-20 text-center text-gray-500 font-mono">
-              <span className="block mb-2 text-xl block mb-2 font-bold tracking-widest">NO PRODUCTS YET.</span>
-              <p>Add products in the Admin panel for them to appear here!</p>
-            </div>
-          ) : (
-            products.map((product) => (
-              <Link to={`/product/${product._id}`} key={product._id} className="group block">
-                <div className="relative aspect-[3/4] bg-gray-900 border border-gray-800 rounded-lg overflow-hidden mb-5">
-                  <img 
-                    src={product.images[0] || 'https://via.placeholder.com/400x500?text=No+Image'} 
-                    alt={product.title} 
-                    className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-1000 ease-[cubic-bezier(0.25,1,0.5,1)] opacity-90 group-hover:opacity-100"
-                  />
-                  {product.stock <= 0 && (
-                    <div className="absolute top-4 right-4 bg-black/90 px-3 py-1 text-[10px] font-bold tracking-widest text-white uppercase backdrop-blur-sm rounded">
-                      Sold Out
-                    </div>
-                  )}
-                </div>
-                <div className="flex justify-between items-start font-sans px-1">
-                  <div>
-                    <h3 className="text-sm font-semibold tracking-wider mb-1 text-gray-200 group-hover:text-white transition-colors">{product.title}</h3>
-                    <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest">{product.category}</p>
-                  </div>
-                  <p className="text-sm font-bold tracking-wider">${product.price.toFixed(2)}</p>
-                </div>
-              </Link>
-            ))
-          )}
+        <div className="flex flex-col md:flex-row gap-12">
+          
+          {/* Categories Sidebar */}
+          <aside className="w-full md:w-1/4 pb-8 md:pb-0 md:pr-8">
+            <h3 className="font-sans tracking-widest uppercase font-bold text-gray-400 mb-8 text-xs border-b border-gray-900 pb-4">Categories</h3>
+            <ul className="space-y-6">
+              {taxonomy.map(cat => (
+                <li key={cat._id}>
+                   <Link to={`/${cat.slug}`} className="font-bold text-white uppercase tracking-[0.2em] text-sm hover:text-gray-300 transition-colors block mb-3">{cat.name}</Link>
+                   {cat.subcategories && cat.subcategories.length > 0 && (
+                      <ul className="pl-4 space-y-3 border-l border-gray-800 ml-2">
+                         {cat.subcategories.map(sub => (
+                           <li key={sub._id}>
+                             <Link to={`/${cat.slug}/${sub.slug}`} className="text-gray-500 hover:text-white uppercase font-mono text-[10px] tracking-widest block transition-colors">{sub.name}</Link>
+                           </li>
+                         ))}
+                      </ul>
+                   )}
+                </li>
+              ))}
+              {taxonomy.length === 0 && <li className="text-gray-600 font-mono text-xs uppercase">Store unmapped.</li>}
+            </ul>
+          </aside>
+
+          {/* Highlights Grid */}
+          <div className="w-full md:w-3/4">
+             <div className="flex justify-between items-end mb-12 border-b border-gray-900 pb-4">
+               <h2 className="text-2xl font-sans font-bold tracking-widest uppercase text-white shadow-sm">Collection Highlights</h2>
+               <Link to="/shop" className="text-xs font-mono text-gray-400 hover:text-white uppercase tracking-widest transition-colors mb-1 group flex items-center gap-2">
+                 View Shop <span className="group-hover:translate-x-1 outline-none transition-transform">&rarr;</span>
+               </Link>
+             </div>
+             
+             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+               {products.length === 0 ? (
+                 <div className="col-span-3 flex flex-col items-center justify-center py-20 text-center text-gray-500 font-mono">
+                   <span className="block mb-2 text-xl block mb-2 font-bold tracking-widest">NO PRODUCTS YET.</span>
+                   <p>Add products in the Admin panel for them to appear here!</p>
+                 </div>
+               ) : (
+                 products.map((product) => (
+                   <Link to={`/product/${product._id}`} key={product._id} className="group block">
+                     <div className="relative aspect-[3/4] bg-gray-900 border border-gray-800 rounded-lg overflow-hidden mb-5">
+                       <img 
+                         src={product.images[0] || 'https://via.placeholder.com/400x500?text=No+Image'} 
+                         alt={product.title} 
+                         className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-1000 ease-[cubic-bezier(0.25,1,0.5,1)] opacity-90 group-hover:opacity-100"
+                       />
+                       {product.stock <= 0 && (
+                         <div className="absolute top-4 right-4 bg-black/90 px-3 py-1 text-[10px] font-bold tracking-widest text-white uppercase backdrop-blur-sm rounded">
+                           Sold Out
+                         </div>
+                       )}
+                     </div>
+                     <div className="flex justify-between items-start font-sans px-1">
+                       <div>
+                         <h3 className="text-sm font-semibold tracking-wider mb-1 text-gray-200 group-hover:text-white transition-colors">{product.title}</h3>
+                         <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest">{product.category}</p>
+                       </div>
+                       <p className="text-sm font-bold tracking-wider">${product.price.toFixed(2)}</p>
+                     </div>
+                   </Link>
+                 ))
+               )}
+             </div>
+          </div>
         </div>
       </section>
     </div>

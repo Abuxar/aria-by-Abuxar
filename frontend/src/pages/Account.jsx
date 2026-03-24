@@ -81,10 +81,12 @@ export default function Account() {
                 <div key={order._id} className="bg-gray-900 border border-gray-800 rounded-lg p-6 flex justify-between items-center">
                   <div>
                     <p className="font-mono text-gray-400 text-xs mb-1">Order # {order.trackingId}</p>
-                    <p className="font-bold">${order.totalAmount.toFixed(2)}</p>
+                    <p className="font-bold">${order.totalPrice ? order.totalPrice.toFixed(2) : '0.00'}</p>
                   </div>
                   <div>
-                    <span className="px-3 py-1 bg-gray-800 text-xs uppercase tracking-wider rounded text-gray-300">{order.status}</span>
+                    <span className="px-3 py-1 bg-gray-800 text-xs uppercase tracking-wider rounded text-gray-300">
+                      {order.isDelivered ? 'Delivered' : order.isDispatched ? 'Dispatched' : order.isPaid ? 'Processing' : 'Pending'}
+                    </span>
                   </div>
                 </div>
               ))}

@@ -26,3 +26,17 @@ export const admin = (req, res, next) => {
     res.status(401).json({ message: 'Not authorized as an admin' });
   }
 };
+
+export const optionalAuth = async (req, res, next) => {
+  let token;
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'ariasecretkey123');
+      req.user = await User.findById(decoded.id).select('-password');
+    } catch (error) {
+      console.log('Optional generic guest checkout token validation bypassed implicitly without error.');
+    }
+  }
+  next();
+};

@@ -8,31 +8,48 @@ export default function ProductEdit() {
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState(0);
   const [images, setImages] = useState([]);
-  const [category, setCategory] = useState('');
   const [stock, setStock] = useState(0);
   const [description, setDescription] = useState('');
   const [uploading, setUploading] = useState(false);
   const [draggedItemIndex, setDraggedItemIndex] = useState(null);
+
+  // Taxonomy states
+  const [categoriesList, setCategoriesList] = useState([]);
+  const [categorySelection, setCategorySelection] = useState('');
 
   const { user } = useAuthStore();
   const navigate = useNavigate();
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchData = async () => {
       try {
-        const { data } = await axios.get(`${API_URL}/products/${id}`);
+        const [prodRes, taxRes] = await Promise.all([
+           axios.get(`${API_URL}/products/${id}`),
+           axios.get(`${API_URL}/categories`)
+        ]);
+        
+        const data = prodRes.data;
         setTitle(data.title);
         setPrice(data.price);
         setImages(data.images || []);
-        setCategory(data.category);
         setStock(data.stock);
         setDescription(data.description);
+        
+        setCategoriesList(taxRes.data);
+
+        // Calculate initial dropdown selection from existing array (deepest child) or legacy string
+        if (data.categories && data.categories.length > 0) {
+           setCategorySelection(data.categories[data.categories.length - 1]);
+        } else {
+           setCategorySelection(data.category || '');
+        }
+
       } catch (error) {
         console.error(error);
       }
     };
-    fetchProduct();
+    fetchData();
   }, [id, API_URL]);
 
   const uploadFileHandler = async (e) => {
@@ -93,10 +110,26 @@ export default function ProductEdit() {
 
   const submitHandler = async (e) => {
     e.preventDefault();
+
+    let computedCategories = [];
+    if (categorySelection) {
+       for (const cat of categoriesList) {
+          if (cat.slug === categorySelection) {
+             computedCategories = [cat.slug];
+             break;
+          }
+          const subMatch = cat.subcategories?.find(s => s.slug === categorySelection);
+          if (subMatch) {
+             computedCategories = [cat.slug, subMatch.slug];
+             break;
+          }
+       }
+    }
+
     try {
       await axios.put(
         `${API_URL}/products/${id}`,
-        { title, price, images, category, stock, description },
+        { title, price, images, category: categorySelection, categories: computedCategories, stock, description },
         { headers: { Authorization: `Bearer ${user.token}` } }
       );
       navigate('/admin/products');
@@ -131,8 +164,19 @@ export default function ProductEdit() {
         </div>
 
         <div>
-          <label className="block text-gray-400 text-xs uppercase tracking-wider mb-2 font-bold">Category</label>
-          <input type="text" className="w-full bg-black border border-gray-700 text-white p-3 rounded focus:outline-none focus:border-gray-500 transition-colors" value={category} onChange={(e) => setCategory(e.target.value)} required />
+          <label className="block text-gray-400 text-xs uppercase tracking-wider mb-2 font-bold">Category Assignment</label>
+          <select value={categorySelection} onChange={(e) => setCategorySelection(e.target.value)} className="w-full bg-black border border-gray-700 text-white p-3 rounded focus:outline-none focus:border-gray-500 font-mono text-sm tracking-widest transition-colors" required>
+             <option value="">-- Select Target Node --</option>
+             {categoriesList.map(cat => (
+                <React.Fragment key={`edit-opt-${cat._id}`}>
+                  <option value={cat.slug} className="font-sans font-bold text-white bg-gray-900 border-b border-gray-800">{cat.name} (Parent)</option>
+                  {cat.subcategories?.map(sub => (
+                     <option key={`edit-opt-${sub._id}`} value={sub.slug} className="font-mono text-gray-400 bg-black italic">&nbsp;&nbsp;&nbsp;&mdash; {sub.name}</option>
+                  ))}
+                </React.Fragment>
+             ))}
+          </select>
+          <p className="text-gray-500 text-[10px] uppercase tracking-widest mt-2">Selecting a subcategory automatically tags its parent directory as well.</p>
         </div>
 
         <div>

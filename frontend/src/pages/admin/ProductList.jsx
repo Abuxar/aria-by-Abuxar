@@ -74,7 +74,12 @@ export default function ProductList() {
                 </td>
                 <td className="p-4">${p.price}</td>
                 <td className="p-4">{p.category}</td>
-                <td className="p-4">{p.stock}</td>
+                <td className="p-4">
+                  {p.stock}
+                  {p.stock < 5 && (
+                    <span className="ml-3 px-2 py-1 bg-red-900/40 text-red-500 border border-red-900 text-[10px] uppercase font-bold tracking-wider rounded">Low Stock</span>
+                  )}
+                </td>
                 <td className="p-4 text-right space-x-4">
                   <Link to={`/admin/products/${p._id}/edit`} className="text-gray-400 hover:text-white transition-colors">Edit</Link>
                   <button onClick={() => deleteProduct(p._id)} className="text-red-400 hover:text-red-300 transition-colors">Delete</button>

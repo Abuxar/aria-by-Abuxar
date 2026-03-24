@@ -2,7 +2,26 @@ import Product from '../models/Product.js';
 
 export const getProducts = async (req, res) => {
   try {
-    const products = await Product.find({});
+    const { category, subcategory } = req.query;
+    let query = {};
+    if (category && subcategory) {
+       query.categories = { $all: [category, subcategory] };
+    } else if (category) {
+       query.categories = category;
+    }
+    
+    // For extreme retro-compatibility, if a product has legacy 'category' string but no 'categories' array,
+    // we can fallback matching it natively. But arrays are preferred now!
+    if (category && !subcategory) {
+        query = { 
+           $or: [
+              { categories: category },
+              { category: category }
+           ]
+        };
+    }
+
+    const products = await Product.find(query);
     res.json(products);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -41,7 +60,7 @@ export const createProduct = async (req, res) => {
 
 export const updateProduct = async (req, res) => {
   try {
-    const { title, price, description, images, category, stock, discountPercent, isActive } = req.body;
+    const { title, price, description, images, category, categories, stock, discountPercent, isActive } = req.body;
     const product = await Product.findById(req.params.id);
     
     if (product) {
@@ -50,6 +69,7 @@ export const updateProduct = async (req, res) => {
       product.description = description || product.description;
       product.images = images || product.images;
       product.category = category || product.category;
+      if (categories !== undefined) product.categories = categories;
       product.stock = stock !== undefined ? stock : product.stock;
       if (discountPercent !== undefined) product.discountPercent = discountPercent;
       if (isActive !== undefined) product.isActive = isActive;
@@ -67,13 +87,32 @@ export const updateProduct = async (req, res) => {
 export const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
+
     if (product) {
-      await product.deleteOne();
+      await product.deleteOne(); // updated from remove()
       res.json({ message: 'Product removed' });
     } else {
       res.status(404).json({ message: 'Product not found' });
     }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+export const bulkAssignCategory = async (req, res) => {
+  try {
+    const { categoryName, productIds } = req.body;
+    if (!categoryName || !productIds || !productIds.length) {
+       return res.status(400).json({ message: 'Invalid data provided' });
+    }
+    
+    // $addToSet ensures no duplicates inside the array!
+    await Product.updateMany(
+      { _id: { $in: productIds } },
+      { $addToSet: { categories: categoryName } }
+    );
+    res.json({ message: 'Categories bulk assigned successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error' });
   }
 };

@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useCartStore } from '../store/cartStore';
 
 export default function ProductDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { addToCart } = useCartStore();
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
@@ -64,9 +67,15 @@ export default function ProductDetail() {
 
             <div className="space-y-4 max-w-sm">
                {product.stock > 0 ? (
-                 <button className="w-full py-4 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-gray-200 transition-colors rounded shadow-lg">
-                   Add to Cart — ${product.price.toFixed(2)}
-                 </button>
+                 <>
+                   <button onClick={() => { addToCart(product, 1); navigate('/checkout'); }} className="w-full py-4 bg-transparent border border-gray-700 text-white font-bold uppercase tracking-widest text-xs hover:bg-gray-900 transition-colors rounded shadow-lg flex items-center justify-center">
+                     Buy It Now
+                   </button>
+                   <button onClick={() => addToCart(product, 1)} className="w-full py-4 bg-white text-black font-bold uppercase tracking-widest text-xs hover:bg-gray-200 transition-colors rounded shadow-lg flex items-center justify-center gap-2 overflow-hidden relative group">
+                     <span className="relative z-10 transition-transform transform group-active:scale-95">Add to Cart &mdash; ${product.price.toFixed(2)}</span>
+                     <div className="absolute inset-0 bg-gray-200 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left ease-out"></div>
+                   </button>
+                 </>
                ) : (
                  <button disabled className="w-full py-4 bg-gray-900 text-gray-500 font-bold uppercase tracking-widest text-xs border border-gray-800 cursor-not-allowed rounded">
                    Sold Out
