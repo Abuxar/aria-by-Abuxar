@@ -81,6 +81,24 @@ export default function ProductDetail() {
           </div>
         </div>
       </div>
+
+      {/* Description Slides Section */}
+      {product.images && product.images.length > 1 && (
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mt-32 border-t border-gray-900 pt-24 pb-12">
+          <h2 className="text-2xl font-bold font-sans tracking-[0.2em] text-center mb-16 uppercase text-white">Product Overview</h2>
+          <div className="space-y-4 md:space-y-8 flex flex-col items-center">
+             {product.images.slice(1).map((img, index) => (
+               <div key={index} className="w-full shadow-2xl">
+                 <img 
+                   src={img} 
+                   alt={`Product Detail Overview ${index + 1}`} 
+                   className="w-full object-cover rounded-sm border border-gray-900"
+                 />
+               </div>
+             ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

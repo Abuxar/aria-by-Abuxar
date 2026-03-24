@@ -28,7 +28,7 @@ export const createProduct = async (req, res) => {
       title: 'Sample Product',
       price: 0,
       description: 'Sample description',
-      images: ['/images/sample.jpg'],
+      images: ['https://images.unsplash.com/photo-1594911772125-07fc7a2d8d9f?auto=format&fit=crop&w=600&q=80'],
       category: 'Sample category',
       stock: 0,
     });
