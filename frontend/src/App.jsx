@@ -6,6 +6,9 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Account from './pages/Account';
+import AdminLayout from './pages/admin/AdminLayout';
+import ProductList from './pages/admin/ProductList';
+import ProductEdit from './pages/admin/ProductEdit';
 
 function App() {
   return (
@@ -18,6 +21,11 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/account" element={<Account />} />
+            
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route path="products" element={<ProductList />} />
+              <Route path="products/:id/edit" element={<ProductEdit />} />
+            </Route>
           </Routes>
         </main>
         <Footer />
