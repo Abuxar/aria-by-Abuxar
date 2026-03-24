@@ -27,7 +27,7 @@ export default function Navbar() {
           
           {/* Center Navigation */}
           <div className="hidden md:flex space-x-10 absolute left-1/2 transform -translate-x-1/2">
-            <Link to="#" className="text-gray-400 hover:text-white transition-colors text-xs font-mono uppercase tracking-[0.1em]">Products</Link>
+            <Link to="/shop" className="text-gray-400 hover:text-white transition-colors text-xs font-mono uppercase tracking-[0.1em]">Shop</Link>
             <Link to="#" className="text-gray-400 hover:text-white transition-colors text-xs font-mono uppercase tracking-[0.1em]">Explore</Link>
             <Link to="#" className="text-gray-400 hover:text-white transition-colors text-xs font-mono uppercase tracking-[0.1em]">Information</Link>
           </div>
