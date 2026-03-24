@@ -8,6 +8,7 @@ import authRoutes from './routes/authRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import uploadRoutes from './routes/uploadRoutes.js';
+import carouselRoutes from './routes/carouselRoutes.js';
 
 dotenv.config();
 
@@ -35,6 +36,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/carousels', carouselRoutes);
 
 // Main Health Ping Endpoint (for UptimeRobot)
 app.get('/health', (req, res) => {

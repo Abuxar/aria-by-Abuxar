@@ -45,14 +45,14 @@ export const updateProduct = async (req, res) => {
     const product = await Product.findById(req.params.id);
     
     if (product) {
-      product.title = title;
-      product.price = price;
-      product.description = description;
-      product.images = images;
-      product.category = category;
-      product.stock = stock;
-      product.discountPercent = discountPercent;
-      product.isActive = isActive;
+      product.title = title || product.title;
+      product.price = price !== undefined ? price : product.price;
+      product.description = description || product.description;
+      product.images = images || product.images;
+      product.category = category || product.category;
+      product.stock = stock !== undefined ? stock : product.stock;
+      if (discountPercent !== undefined) product.discountPercent = discountPercent;
+      if (isActive !== undefined) product.isActive = isActive;
       
       const updatedProduct = await product.save();
       res.json(updatedProduct);

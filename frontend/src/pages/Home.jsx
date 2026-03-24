@@ -1,39 +1,84 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Autoplay, EffectFade, Pagination } from 'swiper/modules';
+import 'swiper/css';
+import 'swiper/css/effect-fade';
+import 'swiper/css/pagination';
 
 export default function Home() {
   const [products, setProducts] = useState([]);
+  const [carousels, setCarousels] = useState([]);
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
-    const fetchLatest = async () => {
+    const fetchData = async () => {
       try {
-        const { data } = await axios.get(`${API_URL}/products`);
-        setProducts(data.slice(0, 4)); // Show top 4 latest
+        const [prodRes, carRes] = await Promise.all([
+           axios.get(`${API_URL}/products`),
+           axios.get(`${API_URL}/carousels`)
+        ]);
+        setProducts(prodRes.data.slice(0, 4));
+        setCarousels(carRes.data);
       } catch (error) {
-        console.error('Failed to load featured products', error);
+        console.error('Failed to load home data', error);
       }
     };
-    fetchLatest();
+    fetchData();
   }, [API_URL]);
 
   return (
     <div className="bg-dark text-white min-h-screen">
-      <section className="relative h-screen flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1618220179428-22790b461013?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')] bg-cover bg-center opacity-40"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent flex items-center justify-center"></div>
-        <div className="relative z-10 text-center px-4 max-w-4xl mx-auto pt-20">
-          <h1 className="text-5xl md:text-7xl font-sans font-bold tracking-[0.2em] mb-6 drop-shadow-2xl">ARIA</h1>
-          <p className="font-mono text-gray-300 text-sm md:text-base tracking-widest mb-10 max-w-2xl mx-auto leading-relaxed uppercase">
-            REDEFINING MINIMALIST LUXURY.<br />CURATED ESSENTIALS FOR THE MODERN AESTHETIC.
-          </p>
-          <Link to="/shop" className="bg-white text-black px-10 py-4 font-bold tracking-[0.2em] text-xs uppercase hover:bg-gray-200 transition-all duration-300 rounded shadow-xl hover:shadow-2xl">
-            Explore Collection
-          </Link>
-        </div>
+      {/* Hero Section */}
+      <section className="relative h-screen overflow-hidden">
+        {carousels.length > 0 ? (
+          <Swiper
+            modules={[Autoplay, EffectFade, Pagination]}
+            effect="fade"
+            loop={true}
+            autoplay={{ delay: 5000, disableOnInteraction: false }}
+            pagination={{ clickable: true }}
+            className="w-full h-full z-0"
+          >
+            {carousels.map((slide) => (
+              <SwiperSlide key={slide._id}>
+                <div className="relative w-full h-full flex items-center justify-center">
+                  <div className="absolute inset-0 bg-black">
+                     <img src={slide.image} alt={slide.title} className="w-full h-full object-cover opacity-60" />
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex items-center justify-center"></div>
+                  <div className="relative z-10 text-center px-4 max-w-4xl mx-auto pt-20">
+                    <h1 className="text-5xl md:text-7xl font-sans font-bold tracking-[0.2em] mb-6 drop-shadow-2xl">{slide.title}</h1>
+                    <p className="font-mono text-gray-300 text-sm md:text-base tracking-widest mb-10 max-w-2xl mx-auto leading-relaxed uppercase">
+                      {slide.subtitle}
+                    </p>
+                    <Link to={slide.link} className="bg-white text-black px-10 py-4 font-bold tracking-[0.2em] text-xs uppercase hover:bg-gray-200 transition-all duration-300 rounded shadow-xl hover:shadow-2xl inline-block">
+                      Explore Collection
+                    </Link>
+                  </div>
+                </div>
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        ) : (
+          <div className="relative w-full h-full flex items-center justify-center">
+             <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1618220179428-22790b461013?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')] bg-cover bg-center opacity-40"></div>
+             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent flex items-center justify-center"></div>
+             <div className="relative z-10 text-center px-4 max-w-4xl mx-auto pt-20">
+               <h1 className="text-5xl md:text-7xl font-sans font-bold tracking-[0.2em] mb-6 drop-shadow-2xl">ARIA</h1>
+               <p className="font-mono text-gray-300 text-sm md:text-base tracking-widest mb-10 max-w-2xl mx-auto leading-relaxed uppercase">
+                 REDEFINING MINIMALIST LUXURY.<br />CURATED ESSENTIALS FOR THE MODERN AESTHETIC.
+               </p>
+               <Link to="/shop" className="bg-white text-black px-10 py-4 font-bold tracking-[0.2em] text-xs uppercase hover:bg-gray-200 transition-all duration-300 rounded shadow-xl hover:shadow-2xl inline-block">
+                 Explore Collection
+               </Link>
+             </div>
+          </div>
+        )}
       </section>
 
+      {/* Highlights Section */}
       <section className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-end mb-12 border-b border-gray-900 pb-4">
           <h2 className="text-2xl font-sans font-bold tracking-widest uppercase text-white shadow-sm">Collection Highlights</h2>

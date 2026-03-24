@@ -12,6 +12,7 @@ export default function ProductEdit() {
   const [stock, setStock] = useState(0);
   const [description, setDescription] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [draggedItemIndex, setDraggedItemIndex] = useState(null);
 
   const { user } = useAuthStore();
   const navigate = useNavigate();
@@ -35,31 +36,59 @@ export default function ProductEdit() {
   }, [id, API_URL]);
 
   const uploadFileHandler = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
     
-    const formData = new FormData();
-    formData.append('image', file);
     setUploading(true);
 
     try {
-      const { data } = await axios.post(`${API_URL}/upload`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${user.token}`,
-        },
+      const uploadPromises = files.map(file => {
+        const formData = new FormData();
+        formData.append('image', file);
+        return axios.post(`${API_URL}/upload`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
       });
-      // Append new image URL to the images array
-      setImages(prevImages => [...prevImages, data.url]);
+
+      const responses = await Promise.all(uploadPromises);
+      const newUrls = responses.map(res => res.data.url);
+      
+      setImages(prevImages => [...prevImages, ...newUrls]);
       setUploading(false);
     } catch (error) {
       console.error('Image upload error', error);
+      alert('One or more uploads failed! ' + (error.response?.data?.message || error.message));
       setUploading(false);
     }
   };
 
   const removeImage = (indexToRemove) => {
     setImages(images.filter((_, index) => index !== indexToRemove));
+  };
+
+  const handleDragStart = (index) => {
+    setDraggedItemIndex(index);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault(); // Necessary to allow dropping
+  };
+
+  const handleDrop = (index) => {
+    if (draggedItemIndex === null || draggedItemIndex === index) return;
+    
+    const newImages = [...images];
+    const draggedImg = newImages[draggedItemIndex];
+    // Remove dragged item
+    newImages.splice(draggedItemIndex, 1);
+    // Insert at drop location
+    newImages.splice(index, 0, draggedImg);
+    
+    setImages(newImages);
+    setDraggedItemIndex(null);
   };
 
   const submitHandler = async (e) => {
@@ -73,12 +102,13 @@ export default function ProductEdit() {
       navigate('/admin/products');
     } catch (error) {
       console.error(error);
+      alert('Update failed: ' + (error.response?.data?.message || error.message));
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto pb-12">
-      <Link to="/admin/products" className="text-gray-400 hover:text-white uppercase tracking-widest text-xs font-bold mb-6 inline-block">
+      <Link to="/admin/products" className="text-gray-400 hover:text-white uppercase tracking-widest text-xs font-bold mb-6 inline-block transition-colors">
         &larr; Back to Products
       </Link>
       <h1 className="text-3xl font-bold text-white tracking-widest mb-8 font-sans">EDIT PRODUCT</h1>
@@ -86,46 +116,52 @@ export default function ProductEdit() {
       <form onSubmit={submitHandler} className="bg-gray-900 border border-gray-800 p-8 rounded-lg space-y-6 shadow-2xl">
         <div>
           <label className="block text-gray-400 text-xs uppercase tracking-wider mb-2 font-bold">Title</label>
-          <input type="text" className="w-full bg-black border border-gray-700 text-white p-3 rounded" value={title} onChange={(e) => setTitle(e.target.value)} required />
+          <input type="text" className="w-full bg-black border border-gray-700 text-white p-3 rounded focus:outline-none focus:border-gray-500 transition-colors" value={title} onChange={(e) => setTitle(e.target.value)} required />
         </div>
         
         <div className="grid grid-cols-2 gap-6">
           <div>
             <label className="block text-gray-400 text-xs uppercase tracking-wider mb-2 font-bold">Price ($)</label>
-            <input type="number" className="w-full bg-black border border-gray-700 text-white p-3 rounded" value={price} onChange={(e) => setPrice(Number(e.target.value))} required />
+            <input type="number" className="w-full bg-black border border-gray-700 text-white p-3 rounded focus:outline-none focus:border-gray-500 transition-colors" value={price} onChange={(e) => setPrice(Number(e.target.value))} required />
           </div>
           <div>
             <label className="block text-gray-400 text-xs uppercase tracking-wider mb-2 font-bold">Stock</label>
-            <input type="number" className="w-full bg-black border border-gray-700 text-white p-3 rounded" value={stock} onChange={(e) => setStock(Number(e.target.value))} required />
+            <input type="number" className="w-full bg-black border border-gray-700 text-white p-3 rounded focus:outline-none focus:border-gray-500 transition-colors" value={stock} onChange={(e) => setStock(Number(e.target.value))} required />
           </div>
         </div>
 
         <div>
           <label className="block text-gray-400 text-xs uppercase tracking-wider mb-2 font-bold">Category</label>
-          <input type="text" className="w-full bg-black border border-gray-700 text-white p-3 rounded" value={category} onChange={(e) => setCategory(e.target.value)} required />
+          <input type="text" className="w-full bg-black border border-gray-700 text-white p-3 rounded focus:outline-none focus:border-gray-500 transition-colors" value={category} onChange={(e) => setCategory(e.target.value)} required />
         </div>
 
         <div>
            <label className="block text-gray-400 text-xs uppercase tracking-wider mb-2 font-bold">Product Text Description</label>
-           <textarea rows="6" className="w-full bg-black border border-gray-700 text-white p-3 rounded font-sans leading-relaxed" value={description} onChange={(e) => setDescription(e.target.value)} required placeholder="Enter main product description..."></textarea>
+           <textarea rows="6" className="w-full bg-black border border-gray-700 text-white p-3 rounded font-sans leading-relaxed focus:outline-none focus:border-gray-500 transition-colors" value={description} onChange={(e) => setDescription(e.target.value)} required placeholder="Enter main product description..."></textarea>
         </div>
 
         <div className="border border-gray-800 rounded p-6 bg-black/50">
           <label className="block text-white text-sm uppercase tracking-wider mb-2 font-bold border-b border-gray-800 pb-2">Product Images & Slides</label>
           <p className="text-xs text-gray-500 font-mono mb-6 leading-relaxed">
-            Upload multiple images. The <strong>first image</strong> acts as the main cover thumbnail. <br/>
-            All <strong>subsequent images</strong> form the rich structural "Description Slides" below the main product page.
+            Select multiple files to <strong>batch upload</strong>. You can <strong>drag and drop</strong> the slides to easily swap the main cover thumbnail. The first image acts as the cover, others become rich description slides.
           </p>
           
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             {images.map((img, index) => (
-              <div key={index} className="relative group aspect-[3/4] border border-gray-700 rounded overflow-hidden">
-                <img src={img} alt={`Slide ${index}`} className="w-full h-full object-cover" />
+              <div 
+                key={index} 
+                draggable
+                onDragStart={() => handleDragStart(index)}
+                onDragOver={handleDragOver}
+                onDrop={() => handleDrop(index)}
+                className="relative group aspect-[3/4] border border-gray-700 rounded overflow-hidden cursor-move transition-transform active:scale-95"
+              >
+                <img src={img} alt={`Slide ${index}`} className="w-full h-full object-cover pointer-events-none" />
                 <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                  <button type="button" onClick={() => removeImage(index)} className="text-red-400 font-bold tracking-widest text-xs uppercase hover:text-red-300">Remove</button>
+                  <button type="button" onClick={() => removeImage(index)} className="text-red-400 font-bold tracking-widest text-xs uppercase hover:text-red-300 pointer-events-auto">Remove</button>
                 </div>
-                {index === 0 && <div className="absolute top-2 left-2 bg-white text-black text-[10px] font-bold px-2 py-1 uppercase tracking-widest rounded shadow">Main Cover</div>}
-                {index > 0 && <div className="absolute top-2 left-2 bg-gray-800 text-white text-[10px] font-bold px-2 py-1 uppercase tracking-widest rounded shadow opacity-80">Slide {index}</div>}
+                {index === 0 && <div className="absolute top-2 left-2 bg-white text-black text-[10px] font-bold px-2 py-1 uppercase tracking-widest rounded shadow pointer-events-none">Main Cover</div>}
+                {index > 0 && <div className="absolute top-2 left-2 bg-gray-800 text-white text-[10px] font-bold px-2 py-1 uppercase tracking-widest rounded shadow opacity-80 pointer-events-none">Slide {index}</div>}
               </div>
             ))}
             {images.length === 0 && (
@@ -134,8 +170,8 @@ export default function ProductEdit() {
           </div>
 
           <div className="flex items-center gap-4">
-             <input disabled={uploading} type="file" onChange={uploadFileHandler} className="text-sm border border-gray-700 w-full md:w-auto p-2 rounded text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-widest file:bg-white file:text-black hover:file:bg-gray-200 transition-colors cursor-pointer" />
-             {uploading && <span className="text-xs text-blue-400 animate-pulse font-mono block">Uploading to Cloudinary...</span>}
+             <input disabled={uploading} type="file" multiple onChange={uploadFileHandler} className="text-sm border border-gray-700 w-full md:w-auto p-2 rounded text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-bold file:uppercase file:tracking-widest file:bg-white file:text-black hover:file:bg-gray-200 transition-colors cursor-pointer" />
+             {uploading && <span className="text-xs text-blue-400 animate-pulse font-mono block">Batch Uploading...</span>}
           </div>
         </div>
 
